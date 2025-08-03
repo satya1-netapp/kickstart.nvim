@@ -161,6 +161,38 @@ vim.opt.scrolloff = 10
 -- See `:help 'confirm'`
 vim.opt.confirm = true
 
+-- Disabling NetRW
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+-- Revealing NeoTree as nvim starts.
+vim.api.nvim_create_autocmd('VimEnter', {
+  pattern = '*',
+  group = vim.api.nvim_create_augroup('NeotreeOnOpen', { clear = true }),
+  once = true,
+  callback = function(_)
+    if vim.fn.argc() >= 1 then
+      vim.cmd 'Neotree reveal'
+    end
+  end,
+})
+
+-- Auto command to toggle absolute and relative numbering.
+-- Create an augroup to manage the autocmds
+local number_toggle_group = vim.api.nvim_create_augroup('NumberToggle', { clear = true })
+
+-- Autocmd for InsertEnter to disable relative numbers
+vim.api.nvim_create_autocmd('InsertEnter', {
+  pattern = '*',
+  command = 'set norelativenumber',
+  group = number_toggle_group,
+})
+
+-- Autocmd for InsertLeave to enable relative numbers
+vim.api.nvim_create_autocmd('InsertLeave', {
+  pattern = '*',
+  command = 'set relativenumber',
+  group = number_toggle_group,
+})
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
@@ -370,7 +402,8 @@ require('lazy').setup({
       { 'nvim-telescope/telescope-ui-select.nvim' },
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
-      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      -- { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      { 'nvim-tree/nvim-web-devicons', enabled = true },
     },
     config = function()
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -664,7 +697,7 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- clangd = {},
-        -- gopls = {},
+        gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -957,7 +990,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'yaml', 'go' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -990,8 +1023,26 @@ require('lazy').setup({
   -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.nvim-ufo',
+  'numToStr/Comment.nvim',
+  {
+    'github/copilot.vim',
+    version = '1.52.0',
+  },
+  {
+    'crusj/bookmarks.nvim',
+    keys = {
+      { '<tab><tab>', mode = { 'n' } },
+    },
+    branch = 'main',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require('bookmarks').setup()
+      require('telescope').load_extension 'bookmarks'
+    end,
+  },
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
